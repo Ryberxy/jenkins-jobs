@@ -1,0 +1,39 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/cliwebbusqprescpac-wcmf.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: NODE
+  # agent: microservicios-jdk21-sas-201-agent ¿HACE FALTA INDICARLO? Dado que ya esta en el config...
+  stages:
+    build: 
+      enable: true
+      container: "node-18-puppeteer"
+      command: |
+        npm install -g npm@9
+        npm install
+        npm run build
+        npm test || true
+    sonar:
+      enable: true
+      container: "jdk21-mvn-sas201"
+      additionalParams:
+        - "-Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts,**/*.spec.tsx,**/*.test.tsx"
+        - "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
+        - "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"
+
+pipeline:
+  branch: develop
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

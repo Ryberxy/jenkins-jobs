@@ -1,0 +1,40 @@
+pipeline:
+  name: sas-pipeline-library
+  branch: feature/SWFPRESUNI-11704_Add-custom-vbles-to-dockerBuild
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/sincoperconsaltordtopresc-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+      command: "clean install"
+    sonar:
+      enable: false
+      container: "jdk21-mvn-sas201"
+    artifact:
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg EXTERNAL_LIBRARIES_PATH=sincoperconsaltordtopresc-boot/src/main/webapp/META-INF/persistence-config-ucp.xml"
+            - "--build-arg SERVER_XML_PATH=sincoperconsaltordtopresc-boot/src/main/liberty/config/"
+            - "--build-arg WAR_PATH=sincoperconsaltordtopresc-boot/target/sincoperconsaltordtopresc.war"
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

@@ -1,0 +1,37 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/dispevttemppresc-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    config: 
+      enable: true
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+      command: "clean package"
+    artifact:
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg SERVER_XML_PATH=dispevttemppresc-boot/src/main/liberty/config/"
+            - "--build-arg WAR_PATH=dispevttemppresc-boot/target/dispevttemppresc.war"
+    deploy:
+      enable: true
+
+integration:
+  stages:
+    deploy: 
+      enable: true
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

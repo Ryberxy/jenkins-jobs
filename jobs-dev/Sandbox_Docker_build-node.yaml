@@ -1,0 +1,36 @@
+#pipeline:
+#  branch: feature/enable-sonar-fronted 
+
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/tools/devops/docker/base.image.node.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    config: 
+      enable: true
+    build: 
+      enable: false
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+    sonar:
+      enable: false
+    artifact:
+      enable: true
+    deploy:
+      enable: false
+
+integration:
+  stages:
+    deploy: 
+      enable: true
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

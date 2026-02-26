@@ -1,0 +1,43 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/cliwebbusqprescpac-wcmf.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: NODE
+  # agent: microservicios-jdk21-sas-201-agent
+  stages:
+    build: 
+      enable: true
+      container: "node-18-puppeteer"
+      command: |
+        npm install
+        npm run build
+        npm test
+    sonar:
+      enable: true
+      container: "jdk21-mvn-sas201"
+      additionalParams:
+        - "-Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts,**/*.spec.tsx,**/*.test.tsx"
+        - "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
+        - "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"
+    artifact: 
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg APP_DIR=dist"
+            - "--build-arg NGINX_CONFIG_DIR=nginx-conf"
+        dockerfile: "Dockerfile_front"
+
+integration:
+  stages:
+    deploy: 
+      enable: true
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: true
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

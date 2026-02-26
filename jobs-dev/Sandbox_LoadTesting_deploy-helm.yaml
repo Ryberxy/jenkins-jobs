@@ -1,0 +1,38 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/tools/devops/tests-repositories/repo1.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    config: 
+      enable: false
+    build: 
+      enable: false
+    sonar:
+      enable: false
+    artifact:
+      enable: false
+    deploy:
+      enable: true
+
+loadtesting:
+  stages:
+    deploy: 
+      enable: true
+      env: "loadtesting"
+      namespace: "pdu-loadtesting"        # override para pdu-loadtesting
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

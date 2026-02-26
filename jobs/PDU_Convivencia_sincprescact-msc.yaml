@@ -1,0 +1,45 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/sincprescact-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    config: 
+      enable: true
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+    sonar:
+      enable: true
+    artifact:
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg SERVER_XML_PATH=sincprescact-boot/src/main/liberty/config/"
+            - "--build-arg WAR_PATH=sincprescact-boot/target/sincprescact.war"
+    deploy:
+      enable: true
+
+integration:
+  stages:
+    deploy: 
+      enable: true
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: true
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification
+
+loadtesting:
+  stages:
+    deploy: 
+      enable: true
+      env: "loadtesting"
+      namespace: "pdu-loadtesting"        # override para loadtesting

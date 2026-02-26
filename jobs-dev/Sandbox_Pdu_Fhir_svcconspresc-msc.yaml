@@ -1,0 +1,41 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/svcconspresc-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    config: 
+      enable: true
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+      download:
+        enable: true
+    sonar:
+      enable: true
+      # toolName: sonar-sas-scanner
+    artifact:
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg SERVER_XML_PATH=svcconspresc-boot/src/main/liberty/config/"
+            - "--build-arg WAR_PATH=svcconspresc-boot/target/svcconspresc.war"
+    deploy:
+      enable: true
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

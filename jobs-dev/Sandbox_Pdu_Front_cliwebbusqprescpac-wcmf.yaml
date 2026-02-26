@@ -1,0 +1,34 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/cliwebbusqprescpac-wcmf.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: NODE
+  # agent: microservicios-jdk21-sas-201-agent ¿HACE FALTA INDICARLO? Dado que ya esta en el config...
+  stages:
+    build: 
+      enable: true
+      container: "node-18"
+      command: |
+        npm install -g npm@9
+        npm install
+        npm run build
+    sonar:
+      enable: false
+      container: "jdk21-mvn-sas201"
+
+pipeline:
+  branch: feature/swfpresuni-11278_implement_node_for_cicd_front
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

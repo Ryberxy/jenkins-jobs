@@ -1,0 +1,33 @@
+pipeline:
+  name: sas-pipeline-library
+  branch: feature/code-coverage-problem
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/sincprescact-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+    sonar:
+      enable: true
+      container: "jdk21-mvn-sas201"
+    artifact:
+      enable: false
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

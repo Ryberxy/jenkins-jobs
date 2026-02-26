@@ -1,0 +1,41 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/projects-toolbox/other-tools/svc-mock-rest-rxxi.git
+    credentialsId: gitlab-token-misgarci
+# pipeline:
+#   name: sas-pipeline-library
+#   branch: develop
+#   repo: https://gitlab.com/misgarci/shared-library.git
+#   credentialsId: gitlab-token-misgarci
+#   loadImplicit: true
+#   allowVersionOverride: false
+#   includeChangeSet: true
+metadata:
+  environment: dev
+
+# default:
+#   git:
+#     url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/projects-toolbox/other-tools/svc-mock-rest-rxxi.git
+#     # credentialsId: git-ssh-otro   # opcional
+#   type: MAVEN
+#   agent: maven
+#   stages:
+#     config: 
+#       enable: true
+#     build: 
+#       enable: true
+#       jdk: "JDK21"
+#       mavenVersion: "maven3.9.11"
+#       download:
+#         enable: true
+#     sonar:
+#       enable: true
+#     artifact:
+#       enable: true
+#       docker:
+#         dockerBuild:
+#           additionalParams:
+#             - "--build-arg SERVER_XML_PATH=svcmockrestrxxi-boot/src/main/liberty/config/"
+#             - "--build-arg WAR_PATH=svcmockrestrxxi-boot/target/svcconspresc.war"
+#     deploy:
+#       enable: true

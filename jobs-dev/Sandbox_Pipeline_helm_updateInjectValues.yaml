@@ -1,0 +1,37 @@
+pipeline:
+  name: sas-pipeline-library
+  branch: feature/SWFPRESUNI-13193_actualizar_inyectValues
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/svcoperpresc-msc.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: MAVEN
+  agent: maven
+  stages:
+    build: 
+      enable: true
+      jdk: "JDK21"
+      mavenVersion: "maven3.9.11"
+      download:
+        enable: true
+    sonar:
+      enable: false
+      container: "jdk21-mvn-sas201"
+    artifact:
+      enable: true
+    deploy:
+      enable: true
+
+integration:
+  stages:
+    deploy: 
+      enable: true
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

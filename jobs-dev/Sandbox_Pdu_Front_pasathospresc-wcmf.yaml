@@ -1,0 +1,48 @@
+default:
+  git:
+    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/pasathospresc-wcmf.git
+    # credentialsId: git-ssh-otro   # opcional
+  type: NODE
+  # agent: microservicios-jdk21-sas-201-agent
+  stages:
+    build: 
+      enable: true
+      container: "node-18-puppeteer"
+      command: |
+        npm install
+        npm run build
+        npm test
+    sonar:
+      enable: true
+      container: "jdk21-mvn-sas201"
+      # toolName: sonar-sas-scanner
+      # sonarServerUrl: sonar-sas-server
+      additionalParams:
+        - "-Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts,**/*.spec.tsx,**/*.test.tsx"
+        - "-Dsonar.exclusions=**/node_modules/**,**/dist/**,**/scripts/**,**/test/**,**/coverage/**"
+        - "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"
+    artifact: 
+      enable: true
+      docker:
+        dockerBuild:
+          additionalParams:
+            - "--build-arg APP_DIR=dist"
+            - "--build-arg NGINX_CONFIG_DIR=nginx-conf"
+        dockerfile: "Dockerfile_front"
+
+pipeline:
+  branch: develop
+
+integration:
+  stages:
+    deploy: 
+      enable: false
+      env: "integration"
+      namespace: "pdu-integration"         # override para integration
+
+certification:
+  stages:
+    deploy: 
+      enable: false
+      env: "certification"
+      namespace: "pdu-certification"        # override para certification

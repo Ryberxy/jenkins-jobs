@@ -1,0 +1,11 @@
+type: pipeline
+description: Job para levantar entorno efímero para realizar pruebas de carga en el cluster de AKS. Aprovisionando nuevos nodos para ello y creando el namespace pdu-loadtesting. El entorno baja de forma automatica sobre las 21:00h horario península ibérica.
+default:
+  git:
+    url: "https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/tools/devops/swfpresuni-tools-devops-charts.git"
+    credentialsId: "gitlab-token-misgarci"
+  pipeline:
+    branch: "develop"
+    scriptPath: "pruebas-carga/Jenkinsfile"
+triggers:
+  cron: "H 21 * * *"
