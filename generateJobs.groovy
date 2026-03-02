@@ -173,7 +173,6 @@ yamlFiles.each { FilePath fileYaml ->
         workflowBranchProjectFactory {
           // Jenkinsfile gestionado por Config File Provider con:  sasPipeline()
           scriptPath('Jenkinsfile')
-          useSandbox true
         }
       }
     }
