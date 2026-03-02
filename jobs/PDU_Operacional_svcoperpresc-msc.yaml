@@ -1,7 +1,7 @@
 default:
   git:
     url: https://github.com/Ryberxy/svcoperpresc-msc.git
-     credentialsId: ryberxy-ssh   # opcional
+    credentialsId: ryberxy-ssh   # opcional
   type: MAVEN
   agent: maven
   stages:
