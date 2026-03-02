@@ -121,6 +121,10 @@ yamlFiles.each { FilePath fileYaml ->
         triggers {
           scm('H/5 * * * *')
         }
+      } else if (cfg?.triggers?.githubPush) {
+	triggers {
+	  githubPush()
+	}
       }
     }
 
