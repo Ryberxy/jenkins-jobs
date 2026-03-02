@@ -4,6 +4,8 @@ default:
     credentialsId: ryberxy-ssh   # opcional
   type: MAVEN
   agent: maven
+  triggers:
+    githubPush: true 
   stages:
     config: 
       enable: true
