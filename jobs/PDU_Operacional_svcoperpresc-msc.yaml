@@ -1,7 +1,7 @@
 default:
   git:
-    url: https://umane.emeal.nttdata.com/git/SWFPRESUNISWFPRESCRI/presunmwc/svcoperpresc-msc.git
-    # credentialsId: git-ssh-otro   # opcional
+    url: https://github.com/Ryberxy/svcoperpresc-msc.git
+     credentialsId: ryberxy-ssh   # opcional
   type: MAVEN
   agent: maven
   stages:
