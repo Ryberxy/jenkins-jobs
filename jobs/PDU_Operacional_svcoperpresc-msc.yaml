@@ -4,8 +4,6 @@ default:
     credentialsId: ryberxy-ssh   # opcional
   type: MAVEN
   agent: maven
-  triggers:
-    githubPush: true 
   stages:
     config: 
       enable: true
@@ -46,3 +44,6 @@ loadtesting:
       enable: true
       env: "loadtesting"
       namespace: "pdu-loadtesting"        # override para loadtesting
+
+#  triggers:
+#    githubPush: true 
