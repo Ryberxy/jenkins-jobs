@@ -174,9 +174,10 @@ yamlFiles.each { FilePath fileYaml ->
         }
       }
       factory {
-        workflowBranchProjectFactory {
+        pipelineBranchDefaultsProjectFactory {
           // Jenkinsfile gestionado por Config File Provider con:  sasPipeline()
-          scriptPath('Jenkinsfile')
+          scriptId 'Jenkinsfile'
+          useSandbox true
         }
       }
     }
@@ -186,3 +187,8 @@ yamlFiles.each { FilePath fileYaml ->
 }
 
 println "[Generate Jobs] Generación de Jobs finalizada."
+
+//      factory {
+//        workflowBranchProjectFactory {
+ //         // Jenkinsfile gestionado por Config File Provider con:  sasPipeline()
+ //         scriptPath('Jenkinsfile')
