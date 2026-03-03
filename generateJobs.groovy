@@ -91,42 +91,41 @@ yamlFiles.each { FilePath fileYaml ->
     println "[Generate Jobs] Creando/actualizando PipelineJob: ${fullName} (branch: ${pipelineBranch})"
 
     pipelineJob(fullName) {
-      description(cfg?.description ?: "")
-      logRotator {
-        daysToKeep(cfg?.retention?.days ?: 14)
-        numToKeep(cfg?.retention?.num ?: 50)
-      }
-      definition {
-        cpsScm {
-          scm {
-            git {
-              remote {
-                url(urlGit)
-                credentials(credentialsIdVar)
-              }
-              branches("*/${pipelineBranch}")
-              extensions {}
-            }
-          }
-          scriptPath(scriptPathVar)
-        }
-      }
-      // triggers opcionales si están en YAML
-      if (cfg?.triggers?.cron) {
-        triggers {
-          cron(cfg.triggers.cron)
-        }
-      } else if (cfg?.triggers?.scm) {
-        // ejemplo: si defines triggers.scm: true -> utiliza pollSCM (opcional)
-        triggers {
-          scm('H/5 * * * *')
-        }
-      } else if (cfg?.triggers?.githubPush) {
-	      triggers {
-	        githubPush()
-	      }
-      }
+    description(cfg?.description ?: "")  // descripción opcional del job
+    logRotator {
+        daysToKeep(cfg?.retention?.days ?: 14)  // retención de builds por días
+        numToKeep(cfg?.retention?.num ?: 50)    // retención de número de builds
     }
+
+    definition {
+        cpsScm {
+            scm {
+                git {
+                    remote {
+                        url(urlGit)               // URL del repo
+                        credentials(credentialsIdVar) // credenciales SSH o token
+                    }
+                    branches("*/${pipelineBranch}")  // rama específica para este job
+                    extensions {}
+                }
+            }
+            scriptPath(scriptPathVar)           // Jenkinsfile físico o generado
+        }
+    }
+
+    // Triggers: se ejecuta automáticamente según lo definido en YAML
+    triggers {
+        if (cfg?.triggers?.cron) {
+            cron(cfg.triggers.cron)           // disparo programado tipo cron
+        }
+        if (cfg?.triggers?.scm) {
+            scm('H/5 * * * *')                // poll SCM opcional
+        }
+        if (cfg?.triggers?.githubPush) {
+            githubPush()                      // disparo automático al push en GitHub
+        }
+    }
+}
 
   } else {
     // Comportamiento original: Multibranch
