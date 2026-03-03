@@ -163,7 +163,7 @@ yamlFiles.each { FilePath fileYaml ->
           strategy {
             defaultBranchPropertyStrategy {
               props {
-                noTriggerBranchProperty()  // "Suppress automatic SCM triggering"
+              // "Suppress automatic SCM triggering"
               }
             }
           }
