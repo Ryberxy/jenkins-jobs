@@ -89,9 +89,9 @@ yamlFiles.each { FilePath fileYaml ->
 
     // Triggers: indexación periódica para detectar ramas nuevas
     triggers {
-      periodicFolderTrigger {
-        cron(indexCron)
-      }
+        periodicFolderTrigger {
+            interval('1')  // en minutos, intervalo mínimo para reindexar el Multibranch
+        }
     }
 
     branchSources {
