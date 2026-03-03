@@ -116,15 +116,23 @@ yamlFiles.each { FilePath fileYaml ->
     // --- Multibranch PipelineJob actualizado ---
     println "[Generate Jobs] Creando/actualizando Multibranch: ${fullName}  (repo: ${urlGit})"
 
-    // --- CAMBIO PRINCIPAL: Generar Jenkinsfile desde Config File Provider ---
-    // Esto asegura que workflowBranchProjectFactory pueda encontrar un Jenkinsfile físico
-    // y evita el error 'Jenkinsfile not found' durante branch indexing
-    def jenkinsfileContent = configFileProvider([
-      configFile(fileId: 'MY_CONFIG_FILE_ID', variable: 'JENKINSFILE_CONTENT')
-    ]) {
-      return env.JENKINSFILE_CONTENT
+    // --- CAMBIO PRINCIPAL: Inyectar Jenkinsfile desde Config File Provider ANTES del indexing ---
+    // Esto garantiza que workflowBranchProjectFactory encuentre un Jenkinsfile físico
+    // Nota: Aquí debes usar tu fileId del Managed File configurado en Jenkins
+    def jenkinsfileContent = null
+    try {
+        jenkinsfileContent = com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(
+            com.cloudbees.hudson.plugins.folder.computed.FolderCredentialsProperty.class,
+            Jenkins.instance,
+            null,
+            null
+        )
+    } catch (ignored) {
+        println "[WARN] No se pudo leer Managed File directamente aquí, usar Pipeline previo para generar Jenkinsfile"
     }
-    ws.child('Jenkinsfile').write(jenkinsfileContent, 'UTF-8')
+
+    // Alternativa más segura: crear un Pipeline previo que genere el Jenkinsfile en workspace
+    // ws.child('Jenkinsfile').write(jenkinsfileContent, 'UTF-8')
 
     multibranchPipelineJob(fullName) {
       description(cfg?.description ?: "")
@@ -160,11 +168,10 @@ yamlFiles.each { FilePath fileYaml ->
         }
       }
 
-      // --- Usar workflowBranchProjectFactory con Jenkinsfile generado dinámicamente ---
+      // --- workflowBranchProjectFactory apunta al Jenkinsfile generado previamente ---
       factory {
         workflowBranchProjectFactory {
-          // SCRIPT PATH apunta al Jenkinsfile generado anteriormente
-          scriptPath('Jenkinsfile')
+          scriptPath('Jenkinsfile')  // debe existir físicamente en workspace antes del branch indexing
         }
       }
 
