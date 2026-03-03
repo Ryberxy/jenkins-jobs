@@ -8,182 +8,120 @@ println "[Generate Jobs] Iniciando generación de Jobs (modo: jobs/<AAA-BBB-...-
 
 FilePath ws = hudson.model.Executor.currentExecutor()?.getCurrentWorkspace()
 if (!ws) {
-  println "[Generate Jobs][ERROR] No hay workspace asignado."
-  return
+    println "[Generate Jobs][ERROR] No hay workspace asignado."
+    return
 }
 
 FilePath jobsDir = ws.child("jobs")
 if (!jobsDir.exists()) {
-  println "[Generate Jobs][WARN] No existe la carpeta 'jobs' en ${ws.getRemote()}"
-  return
+    println "[Generate Jobs][WARN] No existe la carpeta 'jobs' en ${ws.getRemote()}"
+    return
 }
 
-// Lista sólo ficheros .yaml/.yml dentro del direction /jobs del proyecto
+// Lista solo ficheros YAML
 List<FilePath> yamlFiles = jobsDir.list().findAll { filePath ->
-  !filePath.isDirectory() && filePath.getName().toLowerCase() =~ /\.(yaml|yml)$/
+    !filePath.isDirectory() && filePath.getName().toLowerCase() =~ /\.(yaml|yml)$/
 }
 
 if (yamlFiles.isEmpty()) {
-  println "[Generate Jobs][WARN] No se encontraron YAMLs en 'jobs/'."
-  return
+    println "[Generate Jobs][WARN] No se encontraron YAMLs en 'jobs/'."
+    return
 }
 
 yamlFiles.each { FilePath fileYaml ->
-  String fileName = fileYaml.getName()                   // "PDU_Operacional_microservicio.yaml"
-  String baseName = fileName.replaceAll(/\.ya?ml$/, '') // "PDU_Operacional_microservicio"
+    String fileName = fileYaml.getName()
+    String baseName = fileName.replaceAll(/\.ya?ml$/, '')
 
-  // Partes separadas por '_' ; 
-  //  - Todas menos la última = carpetas
-  //  - Última parte = nombre del job
-  // Nota: Deben de tener al menos AAA-BBB-fichero.yaml
-  List<String> parts = baseName.split('_') as List
-  if (parts.size() < 2) {
-    println "[Generate Jobs][WARN] '${fileName}': se esperan al menos 2 segmentos (AAA-JOB.yaml). Omitido."
-    return
-  }
-
-  String jobName = parts.last()
-  List<String> folderParts = parts.size() > 1 ? parts[0..-2] : []
-  String folderPath = folderParts.join('/')
-
-  // Cargamos el YAML
-  Map cfg = [:]
-  String content
-  try {
-    content = fileYaml.readToString()
-    cfg = new Yaml().load(content) as Map ?: [:]
-  } catch (e) {
-    println "[Generate Jobs][WARN] Error leyendo/parsing '${fileName}': ${e}"
-    return
-  }
-
-  // Validación mínima: git.url
-  def urlGit = cfg?.default?.git?.url
-  if (!urlGit) {
-    println "[Generate Jobs][WARN] '${fileName}': falta 'default.git.url' → NO se crea el job."
-    return
-  }
-
-  // Crear jerarquía de carpetas según las partes (AAA/BBB/…)
-  String acc = ""
-  folderParts.each { seg ->
-    acc = acc ? "${acc}/${seg}" : seg
-    folder(acc) { displayName(seg) }
-  }
-
-  String fullName = folderPath ? "${folderPath}/${jobName}" : jobName
-  println "[Generate Jobs] Creando/actualizando: ${fullName}  (repo: ${urlGit})"
-
-  // --- CAMBIO PRINCIPAL: soportar tipo 'pipeline' en YAML (por defecto multibranch) ---
-  // Si en el YAML defines: type: pipeline  -> creará pipelineJob (apunta a una rama)
-  // Si no o type: multibranch -> creará multibranchPipelineJob (comportamiento original)
-  String jobType = (cfg?.type ?: 'multibranch').toString().toLowerCase()
-
-  // valores reutilizables
-  def credentialsIdVar = cfg?.default?.git?.credentialsId ?: DEFAULT_SCM_CREDS
-  def scriptPathVar = cfg?.default?.pipeline?.scriptPath ?: 'Jenkinsfile'
-  def pipelineBranch = cfg?.default?.pipeline?.branch ?: 'develop'
-  def indexCron = cfg?.default?.index_cron ?: cfg?.default?.pipeline?.index_cron ?: 'H 21 * * *'
-  def branchDiscoverRegex = cfg?.default?.branches?.discover ?: '^(integration|certification|loadtesting)$'
-
-  if (jobType == 'pipeline') {
-    // Crear pipelineJob (clásico) que lee Jenkinsfile desde el repo en una rama concreta
-    println "[Generate Jobs] Creando/actualizando PipelineJob: ${fullName} (branch: ${pipelineBranch})"
-
-    pipelineJob(fullName) {
-    description(cfg?.description ?: "")  // descripción opcional del job
-    logRotator {
-        daysToKeep(cfg?.retention?.days ?: 14)  // retención de builds por días
-        numToKeep(cfg?.retention?.num ?: 50)    // retención de número de builds
+    List<String> parts = baseName.split('_') as List
+    if (parts.size() < 2) {
+        println "[Generate Jobs][WARN] '${fileName}': se esperan al menos 2 segmentos (AAA-JOB.yaml). Omitido."
+        return
     }
 
-    definition {
-        cpsScm {
-            scm {
-                git {
-                    remote {
-                        url(urlGit)               // URL del repo
-                        credentials(credentialsIdVar) // credenciales SSH o token
+    String jobName = parts.last()
+    List<String> folderParts = parts.size() > 1 ? parts[0..-2] : []
+    String folderPath = folderParts.join('/')
+
+    // Leer YAML
+    Map cfg = [:]
+    try {
+        cfg = new Yaml().load(fileYaml.readToString()) as Map ?: [:]
+    } catch (e) {
+        println "[Generate Jobs][WARN] Error leyendo/parsing '${fileName}': ${e}"
+        return
+    }
+
+    def urlGit = cfg?.default?.git?.url
+    if (!urlGit) {
+        println "[Generate Jobs][WARN] '${fileName}': falta 'default.git.url' → NO se crea el job."
+        return
+    }
+
+    // Crear carpetas
+    String acc = ""
+    folderParts.each { seg ->
+        acc = acc ? "${acc}/${seg}" : seg
+        folder(acc) { displayName(seg) }
+    }
+
+    String fullName = folderPath ? "${folderPath}/${jobName}" : jobName
+    println "[Generate Jobs] Creando/actualizando Multibranch: ${fullName} (repo: ${urlGit})"
+
+    // Credenciales y configuración
+    def credentialsIdVar = cfg?.default?.git?.credentialsId ?: DEFAULT_SCM_CREDS
+    def indexCron = cfg?.default?.index_cron ?: 'H/5 * * * *'
+    def branchDiscoverRegex = cfg?.default?.branches?.discover ?: '.*'  // todas las ramas
+
+    // --- Multibranch Pipeline principal ---
+    multibranchPipelineJob(fullName) {
+        description(cfg?.description ?: "")
+        orphanedItemStrategy {
+            discardOldItems {
+                daysToKeep(cfg?.retention?.days ?: 14)
+                numToKeep(cfg?.retention?.num ?: 0)
+            }
+        }
+
+        // Branch source usando Git
+        branchSources {
+            branchSource {
+                source {
+                    git {
+                        id("src-${jobName}")
+                        remote(urlGit)
+                        credentialsId(credentialsIdVar)
+                        traits {
+                            gitBranchDiscovery()        // detecta todas las ramas
+                            localBranchTrait()          // incluye ramas locales
+                        }
                     }
-                    branches("*/${pipelineBranch}")  // rama específica para este job
-                    extensions {}
+                }
+                strategy {
+                    defaultBranchPropertyStrategy {
+                        props {
+                            noTriggerBranchProperty()  // suprime triggers automáticos SCM
+                        }
+                    }
                 }
             }
-            scriptPath(scriptPathVar)           // Jenkinsfile físico o generado
         }
-    }
 
-    // Triggers: se ejecuta automáticamente según lo definido en YAML
-    triggers {
-        if (cfg?.triggers?.cron) {
-            cron(cfg.triggers.cron)           // disparo programado tipo cron
-        }
-        if (cfg?.triggers?.scm) {
-            scm('H/5 * * * *')                // poll SCM opcional
-        }
-        if (cfg?.triggers?.githubPush) {
-            githubPush()                      // disparo automático al push en GitHub
-        }
-    }
-}
-
-  } else {
-    // Comportamiento original: Multibranch
-    println "[Generate Jobs] Creando/actualizando Multibranch: ${fullName}  (repo: ${urlGit})"
-
-    multibranchPipelineJob(fullName) {
-      orphanedItemStrategy {
-        discardOldItems {
-          daysToKeep(14)
-          numToKeep(0)
-        }
-      }
-
-      // añadido: indexación periódica del folder si se desea (mínimo cambio)
-      // triggers {
-      //   periodicFolderTrigger {
-      //     cron(indexCron)
-      //   }
-      // }
-
-      branchSources {
-        branchSource {
-          source {
-            git {
-              id("src-${jobName}")
-              remote(urlGit)
-              credentialsId(credentialsIdVar)
-              traits {
-                // descubre SOLO estas ramas (puedes cambiar el regex desde YAML)
-                headRegexFilter { regex('^(integration|certification|loadtesting)$') }
-                gitBranchDiscovery()
-                localBranchTrait()
-                // gitTagDiscovery()
-              }
+        // Factory: Jenkinsfile gestionado por Config File Provider
+        factory {
+            workflowBranchProjectFactory {
+                scriptPath('Jenkinsfile')  // Jenkinsfile en el repo o generado
             }
-          }
-          // >>> suprime disparos automáticos por indexación/eventos SCM
-          strategy {
-            defaultBranchPropertyStrategy {
-              props {
-                noTriggerBranchProperty()  // "Suppress automatic SCM triggering"
-              }
-            }
-          }
         }
-      }
-      factory {
-        workflowBranchProjectFactory {
-          // Jenkinsfile gestionado por Config File Provider con:  sasPipeline()
-          scriptPath('Jenkinsfile')
-        }
-      }
-    }
-  }
 
-  println "[Generate Jobs] Creación/actualización finalizada: ${fullName}"
+        // Indexación periódica para detectar nuevas ramas
+        triggers {
+            periodicFolderTrigger {
+                cron(indexCron)
+            }
+        }
+    }
+
+    println "[Generate Jobs] Creación/actualización finalizada: ${fullName}"
 }
 
 println "[Generate Jobs] Generación de Jobs finalizada."
-
-
